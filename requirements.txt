@@ -1,0 +1,13 @@
+# Dependências para Agente LLM Local (llama.cpp)
+
+# SDK OpenAI para comunicação com servidor llama.cpp
+openai>=1.0.0
+
+# Pydantic para validação de dados
+pydantic>=2.0.0
+
+# Requests para HTTP
+requests>=2.31.0
+
+# Optional: para melhor experiência
+tqdm>=4.66.0
