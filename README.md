@@ -15,22 +15,22 @@ Este projeto implementa um agente inteligente que se comunica com seu servidor l
 ┌─────────────────────────────────────────────────────────────────┐
 │                        AGENTE PYTHON                            │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐  │
-│  │   Controller │    │   Executor   │    │   Tool Registry  │  │
-│  │              │    │              │    │                  │  │
-│  │ - Chat loop  │    │ - Executar   │    │ - read_file      │  │
-│  │ - State mgmt │    │   ferramentas│    │ - write_file     │  │
-│  └──────┬───────┘    └──────┬───────┘    │ - terminal       │  │
-│         │                   │            │ - shell          │  │
-│         ▼                   ▼            │ - glob           │  │
-│  ┌──────────────┐    ┌──────────────┐    │ - grep          │  │
-│  │   LLM Client │◄───│  Tool        │    │ - ls            │  │
-│  │              │    │  Wrapper     │    └──────────────────┘  │
-│  │ - OpenAI SDK │    │              │                          │
-│  │ - Streaming  │    └──────────────┘                          │
+│                                                                 │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐   │
+│  │   Controller │    │   Executor   │    │   Tool Registry  │   │
+│  │              │    │              │    │                  │   │
+│  │ - Chat loop  │    │ - Executar   │    │ - read_file      │   │
+│  │ - State mgmt │    │   ferramentas│    │ - write_file     │   │
+│  └──────┬───────┘    └──────┬───────┘    │ - terminal       │   │
+│         │                   │            │ - shell          │   │
+│         ▼                   ▼            │ - glob           │   │
+│  ┌──────────────┐    ┌──────────────┐    │ - grep           │   │
+│  │   LLM Client │◄───│  Tool        │    │ - ls             │   │
+│  │              │    │  Wrapper     │    └──────────────────┘   │
+│  │ - OpenAI SDK │    │              │                           │
+│  │ - Streaming  │    └──────────────┘                           │
 │  └──────────────┘                                               │
-│                                                                  │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
