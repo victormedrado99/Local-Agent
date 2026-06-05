@@ -73,6 +73,10 @@ class ReadFileTool:
         """
         path = Path(path)
         
+        # Validação de caminho absoluto
+        if path.is_absolute() and not str(path).startswith('/home/cachy'):
+            return f"ERRO: Não é permitido ler arquivos fora do diretório do usuário."
+        
         if not path.exists():
             return f"ERRO: Arquivo não encontrado: {path}"
         
@@ -110,10 +114,27 @@ class WriteFileTool:
         """
         path = Path(path)
         
+        # Validação de caminho - não permite caminhos absolutos fora do diretório do usuário
+        if path.is_absolute() and not str(path).startswith('/home/cachy'):
+            return "ERRO: Não é permitido escrever fora do diretório do usuário."
+        
+        # Remove .. para evitar path traversal
+        path = path.resolve()
+        
+        # Verifica se o caminho resolve para dentro do diretório do usuário
+        if not str(path).startswith('/home/cachy'):
+            return "ERRO: Não é permitido escrever fora do diretório do usuário."
+        
+        # Limite de tamanho (1MB máximo)
+        if len(content) > 1000000:
+            return "ERRO: Conteúdo muito grande (máximo 1MB)."
+        
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding='utf-8')
             return f"SUCESSO: Arquivo criado/atualizado: {path}"
+        except PermissionError:
+            return "ERRO: Não tenho permissão para escrever neste caminho."
         except Exception as e:
             return f"ERRO ao escrever arquivo: {e}"
 
@@ -126,9 +147,23 @@ class TerminalTool:
     def __init__(self, timeout: int = 30):
         self.timeout = timeout
     
+    # Whitelist de comandos seguros
+    ALLOWED_COMMANDS = {
+        'ls', 'll', 'ls -la', 'ls -lh', 'ls -R',
+        'cat', 'head', 'tail', 'grep', 'find', 'tree',
+        'pwd', 'whoami', 'date', 'clear', 'history',
+        'python', 'python3', 'pip', 'pip3',
+        'mkdir', 'cp', 'mv',
+        'tar', 'zip', 'unzip', 'git',
+        'echo', 'echo -n', 'printf',
+        'sort', 'uniq', 'wc', 'cut', 'awk', 'sed',
+        'rm -rf',
+        'bash', 'zsh'
+    }
+    
     def execute(self, command: str) -> str:
         """
-        Executa um comando de terminal.
+        Executa um comando de terminal com whitelist de segurança.
         
         Args:
             command: Comando a ser executado
@@ -136,18 +171,26 @@ class TerminalTool:
         Returns:
             Saída do comando
         """
-        # Segurança: verifica comandos perigosos
-        dangerous_patterns = [
-            r'\brm\s+[-f|r]',      # rm -rf
-            r'\bdel\s+/s*\S',
-            r'\bmkfs',
-            r'\bmount\s+',
-        ]
+        # Validação de whitelist de comandos
+        command_parts = command.split()
+        if not command_parts:
+            return "ERRO: Comando vazio."
         
-        for pattern in dangerous_patterns:
-            if re.search(pattern, command, re.IGNORECASE):
-                return "ERRO: Comando potencialmente perigoso bloqueado. Use com cuidado."
+        first_command = command_parts[0]
         
+        # Verifica se o primeiro comando está na whitelist
+        if first_command not in self.ALLOWED_COMMANDS:
+            return f"ERRO: Comando '{first_command}' não autorizado. Use apenas comandos na lista predefinida."
+        
+        # Permite pipes apenas para comandos seguros
+        if '|' in command or '>' in command or '<' in command:
+            if first_command in ['cat', 'ls', 'grep', 'find', 'head', 'tail', 'sort', 'uniq', 'wc', 'cut', 'awk', 'sed']:
+                # Comandos seguros que podem usar pipes
+                pass
+            else:
+                return "ERRO: Operações de pipe não permitidas para este comando."
+        
+        # Validação de timeout e segurança
         try:
             result = subprocess.run(
                 command,
